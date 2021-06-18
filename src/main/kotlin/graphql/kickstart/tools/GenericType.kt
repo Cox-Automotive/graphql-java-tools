@@ -153,7 +153,7 @@ internal open class GenericType(protected val mostSpecificType: JavaType, protec
                 }
                 is TypeVariable<*> -> {
                     if (declaringType is ParameterizedType) {
-                        TypeUtils.getRawType(type, declaringType)
+                        extractFromDeclaringType(type, declaringType)
                     } else {
                         type
                     }
@@ -162,6 +162,12 @@ internal open class GenericType(protected val mostSpecificType: JavaType, protec
                     type
                 }
             }
+        }
+
+        private fun extractFromDeclaringType(type: TypeVariable<*>, declaringType: ParameterizedType): JavaType {
+            val genericDeclaration: Any = type.genericDeclaration
+            val typeVarAssigns = TypeUtils.getTypeArguments(declaringType, genericDeclaration as Class<*>)
+            return typeVarAssigns[type] ?: TypeUtils.getRawType(type, declaringType)
         }
     }
 }

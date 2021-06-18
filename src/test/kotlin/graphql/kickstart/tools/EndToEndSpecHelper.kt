@@ -3,6 +3,7 @@ package graphql.kickstart.tools
 import graphql.execution.DataFetcherResult
 import graphql.language.ObjectValue
 import graphql.language.StringValue
+import graphql.relay.*
 import graphql.schema.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
@@ -77,12 +78,21 @@ type Query {
     propertyField: String!
     dataFetcherResult: Item!
     dataFetcherResultItems: [Item!]!
+    dataFetcherResultInGeneric: dataFetcherResultInGenericConnection!
 
     coroutineItems: [Item!]!
 
     arrayItems: [Item!]!
     
     throwsIllegalArgumentException: String
+}
+
+type dataFetcherResultInGenericConnection {
+    edges: [dataFetcherResultInGenericConnectionNode!]!
+}
+
+type dataFetcherResultInGenericConnectionNode {
+    node: Item
 }
 
 type ExtendedType {
@@ -305,6 +315,20 @@ class Query : GraphQLQueryResolver, ListListResolver<String>() {
 
     fun dataFetcherResultItems(): List<DataFetcherResult<Item>> {
         return listOf(DataFetcherResult.newResult<Item>().data(items.first()).build())
+    }
+
+    fun dataFetcherResultInGeneric(): Connection<DataFetcherResult<Item>> {
+        val cursor = DefaultConnectionCursor("cursor")
+
+        return DefaultConnection(
+            listOf(
+                DefaultEdge(
+                    DataFetcherResult.newResult<Item>().data(items.first()).build(),
+                    cursor
+                )
+            ),
+            DefaultPageInfo(cursor, cursor, true, true)
+        )
     }
 
     suspend fun coroutineItems(): List<Item> = CompletableDeferred(items).await()
