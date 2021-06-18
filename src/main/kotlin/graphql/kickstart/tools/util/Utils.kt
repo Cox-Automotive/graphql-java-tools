@@ -72,5 +72,5 @@ private fun isBooleanGetter(method: Method) = (method.name.startsWith("is")
     && (method.returnType == java.lang.Boolean::class.java)
     || method.returnType == Boolean::class.java)
 
-internal fun String.snakeToCamelCase(): String = split("_").joinToString(separator = "") { it.capitalize() }
+internal fun String.snakeToCamelCase(): String = split("_").joinToString(separator = "") { it.replaceFirstChar(Char::titlecase) }
 
