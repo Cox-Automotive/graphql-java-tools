@@ -122,7 +122,7 @@ class SchemaParser internal constructor(
         val builder = GraphQLObjectType.newObject()
             .name(name)
             .definition(objectDefinition)
-            .description(if (objectDefinition.description != null) objectDefinition.description.content else getDocumentation(objectDefinition))
+            .description(getDocumentation(objectDefinition, options))
 
         builder.withDirectives(*buildDirectives(objectDefinition.directives, Introspection.DirectiveLocation.OBJECT))
 
@@ -133,7 +133,6 @@ class SchemaParser internal constructor(
         }
 
         objectDefinition.getExtendedFieldDefinitions(extensionDefinitions).forEach { fieldDefinition ->
-            fieldDefinition.description
             builder.field { field ->
                 createField(field, fieldDefinition, inputObjects)
                 codeRegistryBuilder.dataFetcher(
@@ -163,7 +162,7 @@ class SchemaParser internal constructor(
             .name(definition.name)
             .definition(definition)
             .extensionDefinitions(extensionDefinitions)
-            .description(if (definition.description != null) definition.description.content else getDocumentation(definition))
+            .description(getDocumentation(definition, options))
 
         builder.withDirectives(*buildDirectives(definition.directives, Introspection.DirectiveLocation.INPUT_OBJECT))
 
@@ -174,7 +173,7 @@ class SchemaParser internal constructor(
                 val fieldBuilder = GraphQLInputObjectField.newInputObjectField()
                     .name(inputDefinition.name)
                     .definition(inputDefinition)
-                    .description(if (inputDefinition.description != null) inputDefinition.description.content else getDocumentation(inputDefinition))
+                    .description(getDocumentation(inputDefinition, options))
                     .defaultValue(buildDefaultValue(inputDefinition.defaultValue))
                     .type(determineInputType(inputDefinition.type, inputObjects, referencingInputObjects))
                     .withDirectives(*buildDirectives(inputDefinition.directives, Introspection.DirectiveLocation.INPUT_FIELD_DEFINITION))
@@ -194,7 +193,7 @@ class SchemaParser internal constructor(
         val builder = GraphQLEnumType.newEnum()
             .name(name)
             .definition(definition)
-            .description(if (definition.description != null) definition.description.content else getDocumentation(definition))
+            .description(getDocumentation(definition, options))
 
         builder.withDirectives(*buildDirectives(definition.directives, Introspection.DirectiveLocation.ENUM))
 
@@ -207,7 +206,7 @@ class SchemaParser internal constructor(
             getDeprecated(enumDefinition.directives).let {
                 val enumValueDefinition = GraphQLEnumValueDefinition.newEnumValueDefinition()
                     .name(enumName)
-                    .description(if (enumDefinition.description != null) enumDefinition.description.content else getDocumentation(enumDefinition))
+                    .description(getDocumentation(enumDefinition, options))
                     .value(enumValue)
                     .deprecationReason(it)
                     .withDirectives(*enumValueDirectives)
@@ -226,7 +225,7 @@ class SchemaParser internal constructor(
         val builder = GraphQLInterfaceType.newInterface()
             .name(name)
             .definition(interfaceDefinition)
-            .description(if (interfaceDefinition.description != null) interfaceDefinition.description.content else getDocumentation(interfaceDefinition))
+            .description(getDocumentation(interfaceDefinition, options))
 
         builder.withDirectives(*buildDirectives(interfaceDefinition.directives, Introspection.DirectiveLocation.INTERFACE))
 
@@ -247,7 +246,7 @@ class SchemaParser internal constructor(
         val builder = GraphQLUnionType.newUnionType()
             .name(name)
             .definition(definition)
-            .description(if (definition.description != null) definition.description.content else getDocumentation(definition))
+            .description(getDocumentation(definition, options))
 
         builder.withDirectives(*buildDirectives(definition.directives, Introspection.DirectiveLocation.UNION))
 
@@ -278,7 +277,7 @@ class SchemaParser internal constructor(
     private fun createField(field: GraphQLFieldDefinition.Builder, fieldDefinition: FieldDefinition, inputObjects: List<GraphQLInputObjectType>): GraphQLFieldDefinition.Builder {
         field
             .name(fieldDefinition.name)
-            .description(fieldDefinition.description?.content ?: getDocumentation(fieldDefinition))
+            .description(getDocumentation(fieldDefinition, options))
             .definition(fieldDefinition)
             .apply { getDeprecated(fieldDefinition.directives)?.let { deprecate(it) } }
             .type(determineOutputType(fieldDefinition.type, inputObjects))
@@ -287,7 +286,7 @@ class SchemaParser internal constructor(
             val argumentBuilder = GraphQLArgument.newArgument()
                 .name(argumentDefinition.name)
                 .definition(argumentDefinition)
-                .description(if (argumentDefinition.description != null) argumentDefinition.description.content else getDocumentation(argumentDefinition))
+                .description(getDocumentation(argumentDefinition, options))
                 .type(determineInputType(argumentDefinition.type, inputObjects, setOf()))
                 .apply { buildDefaultValue(argumentDefinition.defaultValue)?.let { defaultValue(it) } }
                 .withDirectives(*buildDirectives(argumentDefinition.directives, Introspection.DirectiveLocation.ARGUMENT_DEFINITION))

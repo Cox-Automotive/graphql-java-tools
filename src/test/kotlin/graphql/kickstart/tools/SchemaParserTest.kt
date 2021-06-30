@@ -525,6 +525,67 @@ class SchemaParserTest {
         assert(testNullableArgument.type is GraphQLInputObjectType)
     }
 
+    @Test
+    fun `parser should use comments for descriptions`() {
+        val schema = SchemaParser.newParser()
+            .schemaString(
+                """
+                type Query {
+                    "description"
+                    description: String
+                    #comment
+                    comment: String
+                    omitted: String
+                    "description"
+                    #comment
+                    both: String
+                    ""
+                    empty: String
+                }
+                """)
+            .resolvers(object : GraphQLQueryResolver {})
+            .options(SchemaParserOptions.newOptions().allowUnimplementedResolvers(true).build())
+            .build()
+            .makeExecutableSchema()
+
+        val queryType = schema.getObjectType("Query")
+        assertEquals(queryType.getFieldDefinition("description").description, "description")
+        assertEquals(queryType.getFieldDefinition("comment").description, "comment")
+        assertNull(queryType.getFieldDefinition("omitted").description)
+        assertEquals(queryType.getFieldDefinition("both").description, "description")
+        assertEquals(queryType.getFieldDefinition("empty").description, "")
+    }
+
+    @Test
+    fun `parser should not use comments for descriptions`() {
+        val schema = SchemaParser.newParser()
+            .schemaString(
+                """
+                type Query {
+                    "description"
+                    description: String
+                    #comment
+                    comment: String
+                    omitted: String
+                    "description"
+                    #comment
+                    both: String
+                    ""
+                    empty: String
+                }
+                """)
+            .resolvers(object : GraphQLQueryResolver {})
+            .options(SchemaParserOptions.newOptions().useCommentsForDescriptions(false).allowUnimplementedResolvers(true).build())
+            .build()
+            .makeExecutableSchema()
+
+        assertEquals(schema.queryType.getFieldDefinition("description").description, "description")
+        assertNull(schema.queryType.getFieldDefinition("comment").description)
+        assertNull(schema.queryType.getFieldDefinition("omitted").description)
+        assertEquals(schema.queryType.getFieldDefinition("both").description, "description")
+        assertEquals(schema.queryType.getFieldDefinition("empty").description, "")
+    }
+
     enum class EnumType {
         TEST
     }

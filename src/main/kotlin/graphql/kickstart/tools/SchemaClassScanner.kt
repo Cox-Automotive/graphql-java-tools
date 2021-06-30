@@ -168,7 +168,7 @@ internal class SchemaClassScanner(
                     ?: throw SchemaClassScannerError("Expected a user-defined GraphQL scalar type with name '${definition.name}' but found none!")
                 GraphQLScalarType.newScalar()
                     .name(provided.name)
-                    .description(definition.description?.content ?: getDocumentation(definition) ?: provided.description)
+                    .description(getDocumentation(definition, options) ?: provided.description)
                     .coercing(provided.coercing)
                     .definition(definition)
                     .build()

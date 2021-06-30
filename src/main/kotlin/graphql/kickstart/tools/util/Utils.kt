@@ -1,6 +1,7 @@
 package graphql.kickstart.tools.util
 
 import graphql.kickstart.tools.GraphQLResolver
+import graphql.kickstart.tools.SchemaParserOptions
 import graphql.language.*
 import graphql.schema.DataFetchingEnvironment
 import kotlinx.coroutines.CoroutineScope
@@ -49,10 +50,16 @@ internal val Class<*>.declaredNonProxyMethods: List<JavaMethod>
         }
     }
 
-internal fun getDocumentation(node: AbstractNode<*>): String? = node.comments?.asSequence()
-    ?.filter { !it.content.startsWith("#") }
-    ?.joinToString("\n") { it.content.trimEnd() }
-    ?.trimIndent()
+internal fun getDocumentation(node: AbstractDescribedNode<*>, options: SchemaParserOptions): String? =
+    when {
+        node.description != null -> node.description.content
+        !options.useCommentsForDescriptions -> null
+        node.comments.isNullOrEmpty() -> null
+        else -> node.comments.asSequence()
+            .filter { !it.content.startsWith("#") }
+            .joinToString("\n") { it.content.trimEnd() }
+            .trimIndent()
+    }
 
 /**
  * Simple heuristic to check is a method is a trivial data fetcher.
