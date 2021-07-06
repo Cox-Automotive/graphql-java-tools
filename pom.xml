@@ -16,7 +16,7 @@
         <java.version>1.8</java.version>
         <kotlin.version>1.5.0</kotlin.version>
         <kotlin-coroutines.version>1.5.0-native-mt</kotlin-coroutines.version>
-        <jackson.version>2.12.3</jackson.version>
+        <jackson.version>2.12.4</jackson.version>
         <graphql-java.version>16.2</graphql-java.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
